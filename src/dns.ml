@@ -2223,6 +2223,12 @@ module Rr_map = struct
 
   let text : type c. ?origin:'a Domain_name.t -> ?default_ttl:int32 ->
     'b Domain_name.t -> c key -> c -> string = fun ?origin ?default_ttl n t v ->
+    let rec ws_after_56 s =
+      let pos = 56 in
+      let l = String.length s in
+      if l < pos then s
+      else String.sub s 0 pos ^ " " ^ ws_after_56 (String.sub s pos (l - pos))
+    in
     let hex cs =
       let buf = Bytes.create (Cstruct.length cs * 2) in
       for i = 0 to pred (Cstruct.length cs) do
@@ -2232,7 +2238,9 @@ module Rr_map = struct
         Bytes.set buf (i * 2) (to_hex_char up) ;
         Bytes.set buf (i * 2 + 1) (to_hex_char low)
       done;
-      Bytes.unsafe_to_string buf
+      Bytes.unsafe_to_string buf |> ws_after_56
+    and b64 cs =
+      Base64.encode_string (Cstruct.to_string cs) |> ws_after_56
     in
     let origin = match origin with
       | None -> None
@@ -2301,8 +2309,7 @@ module Rr_map = struct
               str_name ttl_fmt (ttl_opt ttl)
               (Dnskey.encode_flags key.flags)
               (Dnskey.algorithm_to_int key.algorithm)
-              (* TODO should be base64! *)
-              (hex key.key) :: acc)
+              (b64 key.key) :: acc)
           keys []
       | Caa, (ttl, caas) ->
         Caa_set.fold (fun caa acc ->
@@ -2341,16 +2348,16 @@ module Rr_map = struct
               | Ok k -> Fmt.to_to_string ppk k
               | Error _ -> "TYPE" ^ string_of_int rrsig.type_covered
             in
-            let pp_ts ppf _ts =
-              (* TODO *) Fmt.pf ppf "foo"
+            let pp_ts ppf ts =
+              let (year, month, day), ((hour, minute, second), _) = Ptime.to_date_time ts in
+              Fmt.pf ppf "%04d%02d%02d%02d%02d%02d" year month day hour minute second
             in
             Fmt.str "%s\t%aRRSIG\t%s\t%u\t%u\t%lu\t%a\t%a\t%u\t%s\t%s" str_name ttl_fmt (ttl_opt ttl)
               typ (Dnskey.algorithm_to_int rrsig.algorithm)
               rrsig.label_count rrsig.original_ttl
               pp_ts rrsig.signature_expiration pp_ts rrsig.signature_inception
               rrsig.key_tag (name rrsig.signer_name)
-              (* TODO should be base64, not hex *)
-              (hex rrsig.signature) :: acc)
+              (b64 rrsig.signature) :: acc)
           rrs []
       | Unknown x, (ttl, datas) ->
         Txt_set.fold (fun data acc ->
