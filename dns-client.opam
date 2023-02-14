@@ -28,7 +28,8 @@ depends: [
   "mirage-time" {>= "2.0.0"}
   "mirage-clock" {>= "3.0.0"}
   "mtime" {>= "1.2.0"}
-  "mirage-crypto-rng" {>= "0.8.0"}
+  "mirage-crypto-rng" {>= "0.11.0"}
+  "mirage-crypto-rng-lwt" {>= "0.11.0"}
   "happy-eyeballs" {>= "0.4.0"}
   "alcotest" {with-test}
   "tls" {>= "0.15.0"}
@@ -41,3 +42,8 @@ synopsis: "DNS resolver API"
 description: """
 A resolver implementation using uDNS.
 """
+
+pin-depends: [
+  [ "tls.dev" "git+https://github.com/dinosaure/ocaml-tls.git#9b028cffc75349c899fa99ec477331879bc0ec28" ]
+  [ "tls-mirage.dev" "git+https://github.com/dinosaure/ocaml-tls.git#9b028cffc75349c899fa99ec477331879bc0ec28" ]
+]
