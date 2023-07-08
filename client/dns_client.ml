@@ -229,6 +229,7 @@ struct
     }
 
   let nameservers { transport; _ } = Transport.nameservers transport
+  let transport { transport; _ } = transport
 
   let (>>=) = Transport.bind
 

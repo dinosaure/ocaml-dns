@@ -67,6 +67,9 @@ sig
 
   type t
 
+  val transport : t -> T.t
+  (** The underlying {i transport} value used by the current [dns]. *)
+
   val create : ?cache_size:int ->
     ?edns:[ `None | `Auto | `Manual of Dns.Edns.t ] ->
     ?nameservers:(Dns.proto * T.io_addr list) -> ?timeout:int64 ->
